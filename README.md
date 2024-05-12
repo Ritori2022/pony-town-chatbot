@@ -1,7 +1,7 @@
 # pony-town-chatbot
 用于在小马镇自动获取聊天记录并且回复的机器人
 
-javascript小白第一次写东西
+javascript小白第一次在github写东西
 
 主要功能：
 运行brower.js开启测试浏览器
