@@ -1,0 +1,20 @@
+{
+  "name": "pt",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "gradio-client": "^1.0.0",
+    "puppeteer": "^22.8.0"
+  },
+  "devDependencies": {
+    "@gradio/client": "^0.19.0"
+  }
+}
