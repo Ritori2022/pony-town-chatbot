@@ -133,7 +133,7 @@ async function processMessages(page) {
       console.error('发生错误:', error);
     }
   
-    setTimeout(() => processMessages(page), 10000);
+    setTimeout(() => processMessages(page), 3000);
   }
 
 (async () => {

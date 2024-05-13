@@ -1,4 +1,4 @@
-//每一分钟按一下1
+//每一分钟按一下0
 const puppeteer = require('puppeteer');
 
 async function getWSEndpoint() {
