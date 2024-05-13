@@ -11,7 +11,7 @@ javascript小白第一次在github写东西
 运行auto_oc2.js让聊天机器人在没人发言时读内心独白，内心独白的内容在oc.txt中设置
 
 次要功能： 
-运行get_talk_60s.js可以自动捕获聊天记录生成csv文件 
+运行get_talk_60s.js可以自动捕获聊天记录生成csv文件  
 运行afk.js可以每分钟点击一次数字0防止掉线
 
 玩的开心
