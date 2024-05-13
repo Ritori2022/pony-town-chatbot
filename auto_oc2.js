@@ -53,7 +53,7 @@ async function sendMessage(page, message) {
 async function loadOCMessages(ocFile) {
     try {
       const content = await fs.promises.readFile(ocFile, 'utf-8');
-      return content.trim().split(/(?<=[。！？])\s+/);
+      return content.trim().split('\n');
     } catch (error) {
       console.error(`读取OC文件 ${ocFile} 时发生错误:`, error);
       return [];
@@ -83,11 +83,12 @@ async function loadOCMessages(ocFile) {
     }
   }
   
-  async function processMessages(page, lastSentMessage, lastSentTimestamp) {
+  async function processMessages(page, lastSentMessage, lastSentTimestamp, lastSentIndex, lastSentPosition) {
     try {
       const ocMessages = await loadOCMessages('oc.txt');
       const progressFile = 'progress.txt';
-      let index = await loadProgress(progressFile);
+      let index = lastSentIndex || await loadProgress(progressFile);
+      let position = lastSentPosition || 0;
       let lastMessage = '';
       let sameMessageCount = 0;
   
@@ -129,14 +130,33 @@ async function loadOCMessages(ocFile) {
         const isLastSentMessageOld = currentTime - lastSentTimestamp > 2 * 60 * 1000;
   
         if (isLastMessageSent || (sameMessageCount >= 2 && isLastSentMessageOld)) {
-          const message = ocMessages[index];
-          await sendMessage(page, message);
-          lastSentMessage = message.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
-          lastSentTimestamp = currentTime;
-          await saveProgress(progressFile, index + 1);
+          const line = ocMessages[index];
+          const remainingLine = line.slice(position);
+          const nextSentenceEnd = remainingLine.indexOf('。');
+  
+          if (nextSentenceEnd !== -1) {
+            const message = remainingLine.slice(0, nextSentenceEnd + 1);
+            await sendMessage(page, message);
+            lastSentMessage = message.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
+            lastSentTimestamp = currentTime;
+            position += nextSentenceEnd + 1;
+  
+            if (position >= line.length) {
+              await saveProgress(progressFile, index + 1);
+              index++;
+              position = 0;
+            }
+          } else {
+            await sendMessage(page, remainingLine);
+            lastSentMessage = remainingLine.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
+            lastSentTimestamp = currentTime;
+            await saveProgress(progressFile, index + 1);
+            index++;
+            position = 0;
+          }
+  
           console.log('已发送消息,等待1分钟后继续');
           await new Promise(resolve => setTimeout(resolve, 60000));
-          index++;
           lastMessage = '';
           sameMessageCount = 0;
         } else {
@@ -151,7 +171,7 @@ async function loadOCMessages(ocFile) {
       console.error('发生错误:', error);
     }
   
-    setTimeout(() => processMessages(page, lastSentMessage, lastSentTimestamp), 60000);
+    setTimeout(() => processMessages(page, lastSentMessage, lastSentTimestamp, index, position), 60000);
   }
 
 (async () => {

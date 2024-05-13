@@ -2,6 +2,7 @@
 const puppeteer = require('puppeteer');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');
+const delayBetweenMessages = 10000; // 10秒
 
 async function getWSEndpoint() {
   const res = await fetch('http://127.0.0.1:9222/json/version');
@@ -82,22 +83,22 @@ async function loadPrompt() {
 }
 
 async function processMessages(page) {
-  try {
-    const chatLogs = await getChatLogs(page);
-    const lastLog = chatLogs[chatLogs.length - 1];
-
-    if (lastLog.name !== '流霜黯淡(npc小马)') {
-      const lastTenLogs = chatLogs.slice(-10);
-      const message = lastTenLogs.map(log => `[${log.name}]: ${log.message}`).join('\n');
-
-      // 从文件中加载提示词
-      const prompt = await loadPrompt();
-
-      // 添加提示词
-      const promptedMessage = prompt + '\n' + message;
-
-      console.log('发送到API的消息内容:');
-      console.log(promptedMessage);
+    try {
+      const chatLogs = await getChatLogs(page);
+      const lastLog = chatLogs[chatLogs.length - 1];
+  
+      if (lastLog.name !== '流霜黯淡(npc小马)') {
+        const lastTenLogs = chatLogs.slice(-10);
+        const message = lastTenLogs.map(log => `[${log.name}]: ${log.message}`).join('\n');
+  
+        // 从文件中加载提示词
+        const prompt = await loadPrompt();
+  
+        // 添加提示词
+        const promptedMessage = prompt + '\n' + message;
+  
+        console.log('发送到API的消息内容:');
+        console.log(promptedMessage);
   
         const reply = await Promise.race([
           runGPT(promptedMessage),
@@ -110,23 +111,15 @@ async function processMessages(page) {
         // 提取assistant之后的内容
         const content = reply.split('assistant')[1].trim();
   
-        // 将内容分段,每60个字符一段
-        const segments = [];
-        let currentSegment = '';
-        content.split('').forEach(char => {
-          currentSegment += char;
-          if (currentSegment.length >= 70) {
-            segments.push(currentSegment);
-            currentSegment = '';
-          }
-        });
-        if (currentSegment) {
-          segments.push(currentSegment);
-        }
+        // 将内容按照中文句号分段
+        const segments = content.split(/[。！？]/);
   
         // 逐段发送消息
         for (const segment of segments) {
-          await sendMessage(page, segment);
+          if (segment.trim() !== '') {
+            await sendMessage(page, segment.trim() + '。');
+            await new Promise(resolve => setTimeout(resolve, 10000));
+          }
         }
       }
     } catch (error) {
