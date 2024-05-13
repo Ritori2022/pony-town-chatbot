@@ -98,7 +98,7 @@ async function loadOCMessages(ocFile) {
           const message = ocMessages[index];
           await sendMessage(page, message);
           lastSentMessage = message;
-          lastMessageTimestamp = currentTime;
+          lastMessageTimestamp = currentTime; // 更新lastMessageTimestamp为当前时间
           await saveProgress(progressFile, index);
           index++;
   
@@ -108,7 +108,7 @@ async function loadOCMessages(ocFile) {
           const newChatLogs = await getChatLogs(page);
           if (newChatLogs.length > chatLogs.length) {
             // 有新的发言,更新最后一条消息的时间戳
-            lastMessageTimestamp = currentTime;
+            lastMessageTimestamp = currentTime; // 更新lastMessageTimestamp为当前时间
             break;
           }
         }
@@ -126,7 +126,6 @@ async function loadOCMessages(ocFile) {
   
     setTimeout(() => processMessages(page, lastSentMessage, lastMessageTimestamp), 60000);
   }
-  
 
 (async () => {
   try {
