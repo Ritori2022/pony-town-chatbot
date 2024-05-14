@@ -83,12 +83,12 @@ async function loadOCMessages(ocFile) {
     }
   }
   
-  async function processMessages(page, lastSentMessage, lastSentTimestamp, lastSentIndex, lastSentPosition) {
+  async function processMessages(page, lastSentMessage, lastSentTimestamp) {
     try {
       const ocMessages = await loadOCMessages('oc.txt');
       const progressFile = 'progress.txt';
-      let index = lastSentIndex || await loadProgress(progressFile);
-      let position = lastSentPosition || 0;
+      let index = await loadProgress(progressFile);
+      let position = 0;
       let lastMessage = '';
       let sameMessageCount = 0;
   
@@ -171,7 +171,7 @@ async function loadOCMessages(ocFile) {
       console.error('发生错误:', error);
     }
   
-    setTimeout(() => processMessages(page, lastSentMessage, lastSentTimestamp, index, position), 60000);
+    setTimeout(() => processMessages(page, lastSentMessage, lastSentTimestamp), 60000);
   }
 
 (async () => {

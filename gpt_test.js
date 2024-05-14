@@ -1,4 +1,3 @@
-//连接到浏览器的测试
 const puppeteer = require('puppeteer');
 
 async function getWSEndpoint() {
@@ -25,17 +24,32 @@ async function getWSEndpoint() {
     const page = pages[0];
     console.log('已连接到页面:', page.url());
 
+    // 检查页面是否为 ChatGPT
+    if (!page.url().startsWith('https://chatgpt.com/')) {
+      throw new Error('当前页面不是 ChatGPT');
+    }
+
     // 在页面中继续执行操作
-  // 跳转到指定网址
-  await page.goto('https://www.baidu.com');
-  // 在搜索框中输入内容
-  await page.type('#kw', 'hello', {delay: 100});
-  // 点击"百度一下"按钮
-  await page.click('#su')
-  // 等待搜索结果加载完成
-  await page.waitForSelector('#content_left');
-  // 保存页面截图
-  await page.screenshot({ path: 'screenshot.png' });
+    // 找到输入框并输入消息
+    await page.type('#prompt-textarea', '你好,ChatGPT!');
+
+    // 找到发送按钮并点击
+    await page.click('button[data-testid="send-button"]');
+
+    // 等待回复出现
+    await page.waitForSelector('[data-testid^="conversation-turn-"]:last-of-type .markdown');
+
+    // 再等待5秒,确保回复完整加载
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    // 获取 ChatGPT 的最新回复
+    let reply = await page.evaluate(() => {
+      return document.querySelector('[data-testid^="conversation-turn-"]:last-of-type .markdown').innerText;
+    });
+
+    console.log('ChatGPT 最新回复:', reply);
+
+    // 可以继续发送消息和获取回复...
 
     console.log('自动化操作完成');
 
