@@ -8,7 +8,7 @@ async function getWSEndpoint() {
 }
 
 async function clickSafeChinese(page) {
-    const spanSelector = 'span[_ngcontent-oir-c98=""]';
+
     
     try {
       await page.waitForSelector(spanSelector, { timeout: 20000 });

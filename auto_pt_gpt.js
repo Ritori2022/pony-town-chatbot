@@ -2,7 +2,6 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
-const delayBetweenMessages =10000; // 10秒
 
 async function clickButton(page) {
   await page.click('button.px-3');
@@ -67,13 +66,16 @@ async function loadPrompt() {
 
 async function processMessages(page) {
   // 每20分钟点击一次按钮
-  setInterval(() => clickButton(page), 1200000);
+  //setInterval(() => clickButton(page), 1200000);
 
   try {
     const chatLogs = await getChatLogs(page);
     const lastLog = chatLogs[chatLogs.length - 1];
 
     if (lastLog.name !== '流霜黯淡(npc小马)') {
+      await page.keyboard.press('0');
+      await page.keyboard.press('8');
+      console.log('Pressed key 0');
       const lastTenLogs = chatLogs.slice(-10);
       const message = lastTenLogs.map(log => `[${log.name}]: ${log.message}`).join('\n');
 
@@ -120,6 +122,7 @@ async function processMessages(page) {
       }
 
       await chatgptBrowser.disconnect();
+      await page.keyboard.press('8');
     }
   } catch (error) {
     console.error('发生错误:', error);
