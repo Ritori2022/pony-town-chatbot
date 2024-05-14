@@ -4,6 +4,10 @@ const fs = require('fs');
 
 const delayBetweenMessages =10000; // 10秒
 
+async function clickButton(page) {
+  await page.click('button.px-3');
+}
+
 async function getWSEndpoint(port) {
   const res = await fetch(`http://127.0.0.1:${port}/json/version`);
   const data = await res.json();
@@ -62,6 +66,9 @@ async function loadPrompt() {
 }
 
 async function processMessages(page) {
+  // 每20分钟点击一次按钮
+  setInterval(() => clickButton(page), 1200000);
+
   try {
     const chatLogs = await getChatLogs(page);
     const lastLog = chatLogs[chatLogs.length - 1];
