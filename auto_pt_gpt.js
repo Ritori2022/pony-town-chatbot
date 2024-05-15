@@ -73,9 +73,10 @@ async function processMessages(page) {
     const lastLog = chatLogs[chatLogs.length - 1];
 
     if (lastLog.name !== '流霜黯淡(npc小马)') {
-      await page.keyboard.press('0');
+      await page.keyboard.press('9');
       await page.keyboard.press('8');
-      console.log('Pressed key 0');
+      await page.keyboard.press('7');
+      console.log('Pressed key 9');
       const lastTenLogs = chatLogs.slice(-10);
       const message = lastTenLogs.map(log => `[${log.name}]: ${log.message}`).join('\n');
 
@@ -114,6 +115,8 @@ async function processMessages(page) {
       const segments = reply.split(/[。！？]/);
 
       // 逐段发送消息
+      await page.keyboard.press('7');
+      await page.keyboard.press('9');
       for (const segment of segments) {
         if (segment.trim() !== '') {
           await sendMessage(page, segment.trim() + '。');
@@ -123,6 +126,7 @@ async function processMessages(page) {
 
       await chatgptBrowser.disconnect();
       await page.keyboard.press('8');
+      await page.keyboard.press('9');
     }
   } catch (error) {
     console.error('发生错误:', error);

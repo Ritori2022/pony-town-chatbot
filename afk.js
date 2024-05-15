@@ -27,8 +27,8 @@ async function getWSEndpoint() {
 
     // 每5分钟按一下数字键0
     setInterval(async () => {
-      await page.keyboard.press('9');
-      console.log('Pressed key 9');
+      await page.keyboard.press('0');
+      console.log('Pressed key 0');
     }, 1 * 60 * 1000); // 5 minutes in milliseconds
 
 
