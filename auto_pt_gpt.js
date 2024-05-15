@@ -77,7 +77,7 @@ async function processMessages(page) {
       await page.keyboard.press('8');
       await page.keyboard.press('7');
       console.log('Pressed key 9');
-      const lastTenLogs = chatLogs.slice(-10);
+      const lastTenLogs = chatLogs.slice(-1);
       const message = lastTenLogs.map(log => `[${log.name}]: ${log.message}`).join('\n');
 
       // 从文件中加载提示词
@@ -102,7 +102,7 @@ async function processMessages(page) {
       await chatgptPage.type('#prompt-textarea', promptedMessage);
       await chatgptPage.click('button[data-testid="send-button"]');
       await chatgptPage.waitForSelector('[data-testid^="conversation-turn-"]:last-of-type .markdown');
-      await new Promise(resolve => setTimeout(resolve, 8000));
+      await new Promise(resolve => setTimeout(resolve, 6500));
 
       const reply = await chatgptPage.evaluate(() => {
         return document.querySelector('[data-testid^="conversation-turn-"]:last-of-type .markdown').innerText;
@@ -132,7 +132,7 @@ async function processMessages(page) {
     console.error('发生错误:', error);
   }
 
-  setTimeout(() => processMessages(page), 3000);
+  setTimeout(() => processMessages(page), 1000);
 }
 
 (async () => {
