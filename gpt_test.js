@@ -19,8 +19,10 @@ async function getWSEndpoint() {
       defaultViewport: null,
     });
 
-    // 获取已打开的页面
+    // 获取已打开的页面列表
     const pages = await browser.pages();
+
+    // 选择第一个页面
     const page = pages[0];
     console.log('已连接到页面:', page.url());
 
