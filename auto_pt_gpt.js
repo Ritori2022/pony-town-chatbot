@@ -100,7 +100,14 @@ async function processMessages(page) {
 
       // 在 ChatGPT 页面中输入消息并获取回复
       await chatgptPage.type('#prompt-textarea', promptedMessage);
-      await chatgptPage.click('button[data-testid="send-button"]');
+
+      await chatgptPage.waitForFunction(() => {
+        const sendButton = document.querySelector('button.flex.items-center.justify-center.rounded-full');
+        return sendButton && !sendButton.disabled;
+      }, { timeout: 5000 });  // 最多等待5秒
+      
+      await chatgptPage.click('button.flex.items-center.justify-center.rounded-full');
+      
       await chatgptPage.waitForSelector('[data-testid^="conversation-turn-"]:last-of-type .markdown');
       await new Promise(resolve => setTimeout(resolve, 6500));
 
