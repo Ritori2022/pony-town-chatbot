@@ -2,7 +2,7 @@
 const puppeteer = require('puppeteer');
 
 async function getWSEndpoint() {
-  const res = await fetch('http://127.0.0.1:9223/json/version');
+  const res = await fetch('http://127.0.0.1:9222/json/version');
   const data = await res.json();
   // 将 webSocketDebuggerUrl 中的 ws:// 替换为 http://
   const browserWSEndpoint = data.webSocketDebuggerUrl.replace('ws://', 'http://');
