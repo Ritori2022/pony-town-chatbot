@@ -1,4 +1,4 @@
-//三分钟没人搭话就自言自语,从oc.txt中每分钟读一句
+//有人发言就发送欢迎语，每分钟最多发一次
 const puppeteer = require('puppeteer');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');
