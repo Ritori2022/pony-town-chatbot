@@ -10,6 +10,15 @@ async function getWSEndpoint() {
   return browserWSEndpoint;
 }
 
+async function sendInitialMessage(page) {
+  try {
+    await sendMessage(page, '朗读模块已重置');
+    console.log('已发送初始消息');
+  } catch (error) {
+    console.error('发送初始消息失败:', error);
+  }
+}
+
 async function sendMessage(page, message) {
   const isChatBoxOpen = await page.evaluate(() => {
     const chatBox = document.querySelector('chat-box .chat-box');
@@ -63,7 +72,7 @@ async function loadProgress(progressFile) {
 
 async function processMessages(page) {
   try {
-    const lvyeMessages = await loadLvyeMessages('lvye.txt');
+    const lvyeMessages = await loadLvyeMessages('dianbo_changyuantu.txt');
     const progressFile = 'progress.txt';
     let index = await loadProgress(progressFile);
     let position = 0;
@@ -97,7 +106,7 @@ async function processMessages(page) {
         index = 0; // 重置index为0,从头开始
         position = 0;
       }
-      setTimeout(sendNextMessage, 10000); // 10秒后发送下一条消息
+      setTimeout(sendNextMessage, 6000); // 10秒后发送下一条消息
     };
 
     sendNextMessage(); // 开始发送消息
@@ -119,6 +128,9 @@ async function processMessages(page) {
     const pages = await browser.pages();
     const page = pages[0];
     console.log('已连接到页面:', page.url());
+
+        // 发送初始消息
+        await sendInitialMessage(page);
 
     await processMessages(page);
   } catch (error) {
