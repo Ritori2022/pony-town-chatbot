@@ -2,3 +2,5 @@
 /node_modules
 chat_logs.csv
 /screenshot
+pt_login.js
+gpt_login.js

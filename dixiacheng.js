@@ -11,6 +11,14 @@ async function getWSEndpoint() {
   return browserWSEndpoint;
 }
 
+async function sendInitialMessage(page) {
+  try {
+    await sendMessage(page, '欢迎语模块已重置');
+  } catch (error) {
+    console.error('发送初始消息失败:', error);
+  }
+}
+
 async function getChatLogs(page) {
   const chatLogs = await page.evaluate(() => {
     const chatLogElement = document.querySelector('.chat-log-scroll-inner');
@@ -83,21 +91,20 @@ async function loadOCMessages(ocFile) {
     }
   }
   
-  async function processMessages(page, lastSentMessage, lastSentTimestamp) {
+  async function processMessages(page, lastMessage, lastMessageTimestamp) {
     try {
       const ocMessages = await loadOCMessages('oc.txt');
       const progressFile = 'progress.txt';
       let index = await loadProgress(progressFile);
       let position = 0;
-      let lastMessage = '';
-      let sameMessageCount = 0;
+      let lastChatTimestamp = Date.now();
   
-      // 初始化lastSentMessage和lastSentTimestamp
-      if (!lastSentMessage || !lastSentTimestamp) {
+      // 初始化lastMessage和lastMessageTimestamp
+      if (!lastMessage || !lastMessageTimestamp) {
         const chatLogs = await getChatLogs(page);
         const lastLog = chatLogs[chatLogs.length - 1];
-        lastSentMessage = lastLog.message.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
-        lastSentTimestamp = new Date(`1970-01-01T${lastLog.timestamp}:00Z`).getTime();
+        lastMessage = lastLog.message.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
+        lastMessageTimestamp = new Date(`1970-01-01T${lastLog.timestamp}:00Z`).getTime();
       }
   
       while (index < ocMessages.length) {
@@ -105,64 +112,59 @@ async function loadOCMessages(ocFile) {
         let lastLog = chatLogs[chatLogs.length - 1];
         let currentTime = new Date().getTime();
   
-        // 检查最后一条消息是否是上次发送的消息
+        // 检查最后一条消息是否与上次任何人发送的消息相同
         const lastMessageContent = lastLog.message.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
-        const isLastMessageSent = lastMessageContent === lastSentMessage;
+        const isLastMessageSame = lastMessageContent === lastMessage;
   
-        if (!isLastMessageSent) {
-          if (lastMessageContent === lastMessage) {
-            sameMessageCount++;
-            if (sameMessageCount < 2) {
-              console.log(`连续检测到相同消息,当前次数: ${sameMessageCount}`);
-              await new Promise(resolve => setTimeout(resolve, 30000));
-              continue;
-            }
-          } else {
-            lastMessage = lastMessageContent;
-            sameMessageCount = 1;
-            console.log('检测到新的消息,重置连续检测次数');
-            await new Promise(resolve => setTimeout(resolve, 30000));
-            continue;
-          }
-        }
+        // 检查与最后一条聊天消息的时间间隔是否超过5分钟
+        const isLastChatOld = currentTime - lastChatTimestamp > 2 * 60 * 1000;
   
-        // 检查与上次发送消息的时间间隔是否超过2分钟
-        const isLastSentMessageOld = currentTime - lastSentTimestamp > 2 * 10 * 1000;
+        if (isLastChatOld && isLastMessageSame) {
+          // 如果5分钟没人说话,按数字键6
+          await page.keyboard.press('6');
+          console.log('已按下数字键6');
+        } else if (isLastChatOld && !isLastMessageSame) {
+          // 如果5分钟没人说话后有人开始说话,按数字键5
+          await page.keyboard.press('5');
+          console.log('已按下数字键5');
   
-        if (isLastMessageSent || (sameMessageCount >= 2 && isLastSentMessageOld)) {
-          const line = ocMessages[index];
-          const remainingLine = line.slice(position);
-          const nextSentenceEnd = remainingLine.indexOf('。');
+          lastMessage = lastMessageContent;
+          lastMessageTimestamp = new Date(`1970-01-01T${lastLog.timestamp}:00Z`).getTime();
   
-          if (nextSentenceEnd !== -1) {
-            const message = remainingLine.slice(0, nextSentenceEnd + 1);
-            await sendMessage(page, message);
-            lastSentMessage = message.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
-            lastSentTimestamp = currentTime;
-            position += nextSentenceEnd + 1;
+          while (index < ocMessages.length) {
+            const line = ocMessages[index];
+            const remainingLine = line.slice(position);
+            const nextSentenceEnd = remainingLine.indexOf('。');
   
-            if (position >= line.length) {
+            if (nextSentenceEnd !== -1) {
+              const message = remainingLine.slice(0, nextSentenceEnd + 1);
+              await sendMessage(page, message);
+              lastMessage = message.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
+              lastMessageTimestamp = currentTime;
+              position += nextSentenceEnd + 1;
+  
+              if (position >= line.length) {
+                await saveProgress(progressFile, index + 1);
+                index++;
+                position = 0;
+              }
+            } else {
+              await sendMessage(page, remainingLine);
+              lastMessage = remainingLine.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
+              lastMessageTimestamp = currentTime;
               await saveProgress(progressFile, index + 1);
               index++;
               position = 0;
             }
-          } else {
-            await sendMessage(page, remainingLine);
-            lastSentMessage = remainingLine.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
-            lastSentTimestamp = currentTime;
-            await saveProgress(progressFile, index + 1);
-            index++;
-            position = 0;
+  
+            await new Promise(resolve => setTimeout(resolve, 8000)); // 每条消息间隔8秒
           }
   
-          console.log('已发送消息,等待1分钟后继续');
-          await new Promise(resolve => setTimeout(resolve, 8000));
-          lastMessage = '';
-          sameMessageCount = 0;
-        } else {
-          console.log('最后一条消息不是上次发送的消息,且与上次发送消息的时间间隔未超过2分钟,暂停发送');
-          await new Promise(resolve => setTimeout(resolve, 30000));
+          console.log('已发送所有消息');
         }
+  
+        lastChatTimestamp = currentTime;
+        await new Promise(resolve => setTimeout(resolve, 3000)); // 每30秒检查一次
       }
   
       // 所有消息已发送完毕,重置进度
@@ -171,7 +173,7 @@ async function loadOCMessages(ocFile) {
       console.error('发生错误:', error);
     }
   
-    setTimeout(() => processMessages(page, lastSentMessage, lastSentTimestamp), 30000);
+    setTimeout(() => processMessages(page, lastMessage, lastMessageTimestamp), 30000);
   }
 
 (async () => {
@@ -187,6 +189,9 @@ async function loadOCMessages(ocFile) {
     const pages = await browser.pages();
     const page = pages[0];
     console.log('已连接到页面:', page.url());
+
+          // 发送初始消息
+          await sendInitialMessage(page);
 
     let lastMessageTimestamp = null;
     await processMessages(page, lastMessageTimestamp);

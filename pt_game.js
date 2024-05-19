@@ -5,6 +5,14 @@ async function clickButton(page) {
   await page.click('button.px-3');
 }
 
+async function sendInitialMessage(page) {
+  try {
+    await sendMessage(page, '守秘人模块已重置');
+  } catch (error) {
+    console.error('发送初始消息失败:', error);
+  }
+}
+
 async function getWSEndpoint(port) {
   const maxRetries = 3;
   let retries = 0;
@@ -104,7 +112,7 @@ async function processMessages(page) {
       const chatLogs = await getChatLogs(page);
       const lastLog = chatLogs[chatLogs.length - 1];
 
-      if (lastLog.name !== '守密的莉莉娜(npc)') {
+      if (lastLog.name !== '守密的莉莉娜(npc)(任意聊天激活)') {
         const lastMessage = lastLog.message.trim();
         let messageToSend = '';
 
@@ -240,6 +248,9 @@ async function processMessages(page) {
       const pages = await browser.pages();
       const page = pages[0];
       console.log('已连接到页面:', page.url());
+
+      // 发送初始消息
+      await sendInitialMessage(page);
 
       await processMessages(page);
       break; // 成功连接,跳出重试循环
