@@ -1,5 +1,4 @@
-#用于沟通javascript和llama3-7b api的python脚本
-import sys
+#用于在run_gpt.js和llama3-7b api之间传递消息的python脚本import sys
 from gradio_client import Client
 
 # 从命令行参数获取 message
