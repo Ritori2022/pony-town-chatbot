@@ -101,7 +101,7 @@ const gameMapping = {
   '3': '克苏鲁',
   '4': '历史',
   '5': '007',
-  '6': '超级英雄',
+  '6': '摇滚乐队',
   '7': '朋克',
   '8': '辐射',
   '9': '小马宝莉',
@@ -120,7 +120,7 @@ async function processMessages(page) {
         if (/^\d$/.test(lastMessage)) {
           const gameType = gameMapping[lastMessage];
           if (gameType) {
-            messageToSend = `开始新${gameType}游戏。`;
+            messageToSend = `开始新${gameType}游戏。请等待内容加载（大概20秒）`;
             await page.keyboard.press('7');
             await page.keyboard.press('9');
             await sendMessage(page, messageToSend);
@@ -131,8 +131,7 @@ async function processMessages(page) {
           messageToSend = `我选择${lastMessage.toUpperCase()}。`;
           await page.keyboard.press('7');
           await page.keyboard.press('9');
-          await sendMessage(page, `你选择了${lastMessage.toUpperCase()}。`);
-          await sendMessage(page, messageToSend);
+          await sendMessage(page, `你选择了${lastMessage.toUpperCase()}。请等待内容加载（大概20秒）`);
           await page.keyboard.press('8');
           await page.keyboard.press('9');
         } else if (lastMessage === '0') {
@@ -183,7 +182,7 @@ async function processMessages(page) {
             await findAndClickSendButton(chatgptPage, sendButtonSelector1, sendButtonSelector2);
             
             await chatgptPage.waitForSelector('[data-testid^="conversation-turn-"]:last-of-type .markdown');
-            await new Promise(resolve => setTimeout(resolve, 12000));
+            await new Promise(resolve => setTimeout(resolve, 15000));
             
             const reply = await chatgptPage.evaluate(() => {
               return document.querySelector('[data-testid^="conversation-turn-"]:last-of-type .markdown').innerText;

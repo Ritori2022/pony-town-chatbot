@@ -9,10 +9,14 @@ async function getWSEndpoint() {
   return browserWSEndpoint;
 }
 
+
+
 (async () => {
   try {
     const browserWSEndpoint = await getWSEndpoint();
     console.log('连接到浏览器:', browserWSEndpoint);
+
+
 
     // 连接到已打开的浏览器
     const browser = await puppeteer.connect({
@@ -24,6 +28,36 @@ async function getWSEndpoint() {
     const pages = await browser.pages();
     const page = pages[0];
     console.log('已连接到页面:', page.url());
+
+
+
+
+    const screenshotHandle = await page.evaluateHandle(() => {
+      const body = document.body;
+      const html = document.documentElement;
+      const height = Math.max(
+        body.scrollHeight,
+        body.offsetHeight,
+        html.clientHeight,
+        html.scrollHeight,
+        html.offsetHeight
+      );
+      const width = Math.max(
+        body.scrollWidth,
+        body.offsetWidth,
+        html.clientWidth,
+        html.scrollWidth,
+        html.offsetWidth
+      );
+      return { x: 0, y: 0, width, height };
+    });
+    
+    await page.screenshot({
+      path: 'screenshot.png',
+      clip: await screenshotHandle.evaluate((rect) => rect),
+    });
+    
+    await screenshotHandle.dispose();
 
     // 每5分钟按一下数字键0
     setInterval(async () => {
