@@ -5,9 +5,9 @@ pony-town-chatbot 小马镇聊天机器人
 可以朗读书籍，对话，玩角色扮演游戏
 
 使用说明：
-需要先使用browser.js打开的测试浏览器打开pony town并且打开聊天记录
-使用browser2.js打开chatgpt.com
-之后按需要启用各种脚本连接到浏览器进行自动化操作
+需要先使用browser.js打开的测试浏览器打开pony town并且打开聊天记录。
+使用browser2.js打开chatgpt.com。
+之后按需要启用各种脚本连接到浏览器进行自动化操作。
 
 文件作用如下：
 afk.js://用来挂机的脚本，每一分钟按一下数字键0
