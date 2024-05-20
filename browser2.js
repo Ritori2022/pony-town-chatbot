@@ -1,4 +1,4 @@
-//启动浏览器用于连接
+//启动浏览器用于连接chatgpt.com
 const puppeteer = require('puppeteer');
 
 (async () => {

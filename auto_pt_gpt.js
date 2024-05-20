@@ -1,4 +1,4 @@
-//使用chatgpt网页驱动聊天脚本
+//使用chatgpt网页版来驱动聊天机器人的脚本
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 

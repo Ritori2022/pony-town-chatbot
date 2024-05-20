@@ -1,3 +1,4 @@
+//用来通过python获得llama3-7b回复的脚本
 //传消息给python
 const { exec } = require('child_process');
 

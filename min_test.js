@@ -1,4 +1,4 @@
-//最小可行自动测试
+//自动化运行的最小可行自动测试
 const puppeteer = require('puppeteer');
 
 (async () => {

@@ -1,4 +1,4 @@
-//三分钟没人搭话就自言自语,从oc.txt中每分钟读一句
+//用于自动阅读独白的脚本，三分钟没人搭话就自言自语,从oc.txt中每分钟读一句
 const puppeteer = require('puppeteer');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');

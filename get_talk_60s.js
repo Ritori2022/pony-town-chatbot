@@ -1,4 +1,4 @@
-//每分钟获取聊天记录的脚本
+//每分钟获取聊天记录的脚本,加入到chat_logs.csv中
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 

@@ -1,4 +1,4 @@
-//启动浏览器用于连接
+//启动浏览器用于连接pony.town
 const puppeteer = require('puppeteer');
 
 (async () => {

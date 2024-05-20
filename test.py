@@ -1,3 +1,4 @@
+#单独运行用于测试llama3-7b的脚本，发送hello给llama3，并打印回答。
 #测试api的脚本
 from gradio_client import Client
 

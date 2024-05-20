@@ -1,4 +1,4 @@
-#发送给api
+#用于沟通javascript和llama3-7b api的python脚本
 import sys
 from gradio_client import Client
 

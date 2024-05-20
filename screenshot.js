@@ -1,3 +1,4 @@
+//每5分钟自动截图一次的脚本
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');

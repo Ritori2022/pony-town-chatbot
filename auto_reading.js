@@ -1,3 +1,4 @@
+//用于朗读的脚本，从dianbo_changyuantu.txt'读取内容，每10秒读一句，进度保存在progress.txt里
 const puppeteer = require('puppeteer');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');

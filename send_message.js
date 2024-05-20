@@ -1,4 +1,4 @@
-//发送聊天到pt
+//发送一次聊天内容到pt的脚本
 const puppeteer = require('puppeteer');
 
 async function getWSEndpoint() {

@@ -1,3 +1,4 @@
+//连接到browser.js的测试，使用browser.js开启的测试浏览器继续进行自动化操作
 //连接到浏览器的测试
 const puppeteer = require('puppeteer');
 

@@ -1,4 +1,4 @@
-//十分钟没人搭话就自言自语，从api即时生成
+//十分钟没人搭话就自言自语，读取prompt_introduce.txt的提示词，之后使用llama3 -7b api即时生成独白
 const puppeteer = require('puppeteer');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');

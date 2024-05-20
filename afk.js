@@ -1,4 +1,4 @@
-//每一分钟按一下0
+//用来挂机的脚本，每一分钟按一下数字键0
 const puppeteer = require('puppeteer');
 
 async function getWSEndpoint() {

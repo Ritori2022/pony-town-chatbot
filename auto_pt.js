@@ -1,4 +1,4 @@
-//pt自动聊天脚本
+//使用llama3-7b api 来驱动pt聊天机器人的自动聊天脚本
 const puppeteer = require('puppeteer');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');

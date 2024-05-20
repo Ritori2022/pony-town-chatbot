@@ -1,3 +1,4 @@
+//发送一次消息给chatgpt.com并获取回答的脚本，用于测试chatgpt.com的连接
 const puppeteer = require('puppeteer');
 
 async function getWSEndpoint() {

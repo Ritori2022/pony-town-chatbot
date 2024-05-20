@@ -1,4 +1,4 @@
-//获取聊天框中所有记录的脚本
+//获取聊天框中所有记录的脚本，打印在控制台上，用于测试获取聊天记录功能
 const puppeteer = require('puppeteer');
 
 async function getWSEndpoint() {
