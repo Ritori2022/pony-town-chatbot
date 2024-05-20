@@ -38,7 +38,7 @@ gpt_test.js//发送一次消息给chatgpt.com并获取回答的脚本，用于�
 
 gpt.py#用于在run_gpt.js和llama3-7b api之间传递消息的python脚本
 
-min_test.js//自动化运行的最小可行自动测试
+min_test.js//自动化运行的最小可行测试
 
 pt_game.js//用于单人桌面角色扮演的脚本，接受玩家聊天输入，数字选择主题，字母选择选项
 
