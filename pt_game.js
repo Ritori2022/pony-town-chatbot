@@ -202,7 +202,7 @@ async function processMessages(page) {
             await page.keyboard.press('9');
           }
         } else if (/^[a-dA-D]$/.test(lastMessage)) {
-          messageToSend = `我选择${lastMessage.toUpperCase()}。仅作为提醒：每轮游戏至少20回合。`;
+          messageToSend = `我选择${lastMessage.toUpperCase()}。仅作为提醒：每轮游戏至少20回合。请总是给出选项。`;
           await page.keyboard.press('7');
           await page.keyboard.press('9');
           await sendMessage(page, `你选择了${lastMessage.toUpperCase()}。请耐心等候内容加载（大概20秒）`);

@@ -56,6 +56,9 @@ test1.js//连接到browser.js的测试，使用browser.js开启的测试浏览�
 
 welcome.js//用于发送欢迎语的脚本，从oc.txt中读取，有人发言就发送欢迎语，每分钟最多发一次，通过按键5和6控制小马的睡眠和唤醒
 
+2024/05/21
+recreate.js//用于将chatgpt网页版从异常错误中恢复
+
 
 
 
