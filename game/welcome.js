@@ -98,8 +98,8 @@ async function loadProgress(progressFile) {
 
 async function processMessages(page, lastMessage, lastMessageTimestamp) {
   try {
-    const ocMessages = await loadOCMessages('../txt/welcome.txt');
-    const progressFile = '../txt/progress.txt';
+    const ocMessages = await loadOCMessages('welcome.txt');
+    const progressFile = '../progress.txt';
     let index = await loadProgress(progressFile);
     let position = 0;
     let lastChatTimestamp = Date.now();
