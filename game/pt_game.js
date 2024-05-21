@@ -1,5 +1,5 @@
 //用于单人桌面角色扮演的脚本，接受玩家聊天输入，数字选择主题，字母选择选项
-const { clickButton, getWSEndpoint, getChatLogs, sendMessage, findAndClickSendButton, sendMessageToChatGPT } = require('./common.js');
+const { clickButton, getWSEndpoint, getChatLogs, sendMessage, findAndClickSendButton, sendMessageToChatGPT } = require('../common.js');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 

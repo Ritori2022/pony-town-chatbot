@@ -1,5 +1,5 @@
 //使用chatgpt网页版来驱动聊天机器人的脚本
-const { clickButton, getWSEndpoint, getChatLogs, sendMessage, findAndClickSendButton, sendMessageToChatGPT } = require('./common.js');
+const { clickButton, getWSEndpoint, getChatLogs, sendMessage, findAndClickSendButton, sendMessageToChatGPT } = require('../common.js');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 

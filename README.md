@@ -61,6 +61,7 @@ recreate.js//用于将chatgpt网页版从异常错误中恢复
 
 2024/05/22
 将pt_game的函数模块化入common.js中，供auto_pt_gpt复用
+更新了一下文件组织结构：additional是备用文件，chat是聊天脚本文件，game是游戏脚本文件，test是测试用工具，tools是常用工具，txt存放文本
 
 todolist:
 将函数模块化，使得不同脚本可以共用最新版的函数
