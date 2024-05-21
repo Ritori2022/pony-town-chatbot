@@ -73,7 +73,7 @@ async function loadProgress(progressFile) {
 
 async function processMessages(page) {
   try {
-    const lvyeMessages = await loadLvyeMessages('dianbo_changyuantu.txt');
+    const lvyeMessages = await loadLvyeMessages('lvye.txt');
     const progressFile = 'progress.txt';
     let index = await loadProgress(progressFile);
     let position = 0;
