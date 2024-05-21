@@ -1,4 +1,4 @@
-//用于发送欢迎语的脚本，从oc.txt中读取，有人发言就发送欢迎语，每分钟最多发一次，通过按键5和6控制小马的睡眠和唤醒
+//用于发送欢迎语的脚本，从welcome.txt中读取，有人发言就发送欢迎语，每分钟最多发一次，通过按键5和6控制小马的睡眠和唤醒
 const puppeteer = require('puppeteer');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');
@@ -98,8 +98,8 @@ async function loadProgress(progressFile) {
 
 async function processMessages(page, lastMessage, lastMessageTimestamp) {
   try {
-    const ocMessages = await loadOCMessages('oc.txt');
-    const progressFile = 'progress.txt';
+    const ocMessages = await loadOCMessages('../txt/welcome.txt');
+    const progressFile = '../txt/progress.txt';
     let index = await loadProgress(progressFile);
     let position = 0;
     let lastChatTimestamp = Date.now();
