@@ -176,7 +176,7 @@ async function processMessages(page, lastMessage, lastMessageTimestamp) {
               position = 0;
             }
 
-            await new Promise(resolve => setTimeout(resolve, 3000)); // 每条消息间隔8秒
+            await new Promise(resolve => setTimeout(resolve, 1000)); // 每条消息间隔8秒
           }
 
           console.log('已发送所有消息');

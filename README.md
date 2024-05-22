@@ -4,6 +4,9 @@ pony-town-chatbot 小马镇聊天机器人
 
 可以朗读书籍，对话，玩角色扮演游戏
 
+如果没有node.js请先下载
+使用npm install安装依赖
+
 使用说明：
 需要先使用browser.js打开的测试浏览器打开pony town并且打开聊天记录。
 使用browser2.js打开chatgpt.com。
