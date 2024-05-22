@@ -130,7 +130,7 @@ async function processMessages(page, lastMessage, lastMessageTimestamp) {
       console.log(`是否与上次消息相同: ${isLastMessageSame}`);
 
       // 检查与最后一条聊天消息的时间间隔是否超过2分钟
-      const isLastChatOld = currentTime - lastChatTimestamp > 1 * 60 * 1000;
+      const isLastChatOld = currentTime - lastChatTimestamp > 5 * 60 * 1000;
 
       console.log(`当前时间: ${currentTime}`);
       console.log(`最后一次聊天时间戳: ${lastChatTimestamp}`);
