@@ -1,5 +1,5 @@
 //用于单人桌面角色扮演的脚本，接受玩家聊天输入，数字选择主题，字母选择选项
-const { clickButton, getWSEndpoint, getChatLogs, sendMessage, findAndClickSendButton, sendMessageToChatGPT } = require('../common.js');
+const { clickButton, getWSEndpoint, getChatLogs, sendMessage, findAndClickSendButton } = require('../common.js');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
@@ -11,16 +11,91 @@ async function sendInitialMessage(page) {
   }
 }
 
+async function sendMessageToChatGPT(page, messageToSend) {
+  const maxRetries = 3;
+  let retries = 0;
+  while (retries < maxRetries) {
+    try {
+      // 连接到 ChatGPT 页面
+      const chatgptBrowserWSEndpoint = await getWSEndpoint(9223); // 替换为 ChatGPT 的端口号
+      const chatgptBrowser = await puppeteer.connect({
+        browserWSEndpoint: chatgptBrowserWSEndpoint.replace('http://', 'ws://'),
+        defaultViewport: null,
+      });
+      const chatgptPages = await chatgptBrowser.pages();
+      const chatgptPage = chatgptPages[0];
+            
+      async function findAndClickSendButton(page) {
+        const sendButtonSelector = 'button.mb-1.mr-1.flex.h-8.w-8.items-center.justify-center.rounded-full.bg-black.text-white.transition-colors.hover\\:opacity-70.focus-visible\\:outline-none.focus-visible\\:outline-black.disabled\\:bg-\\[\\\#D7D7D7\\].disabled\\:text-\\[\\\#f4f4f4\\].disabled\\:hover\\:opacity-100.dark\\:bg-white.dark\\:text-black.dark\\:focus-visible\\:outline-white.disabled\\:dark\\:bg-token-text-quaternary.dark\\:disabled\\:text-token-main-surface-secondary path[d="M15.192 8.906a1.143 1.143 0 0 1 1.616 0l5.143 5.143a1.143 1.143 0 0 1-1.616 1.616l-3.192-3.192v9.813a1.143 1.143 0 0 1-2.286 0v-9.813l-3.192 3.192a1.143 1.143 0 1 1-1.616-1.616z"]';
+            
+        await page.waitForSelector(sendButtonSelector, { timeout: 5000 });
+            
+        await page.click(sendButtonSelector);
+      }
+            
+      // 在 ChatGPT 页面中输入消息并获取回复
+      await chatgptPage.type('#prompt-textarea', messageToSend);
+            
+      // 等待1秒钟,让页面有时间更新
+      await new Promise(resolve => setTimeout(resolve, 1000));
+            
+      const sendButtonSelector1 = 'button.flex.items-center.justify-center.rounded-full';
+      const sendButtonSelector2 = 'button.mb-1.mr-1.flex.h-8.w-8.items-center.justify-center.rounded-full';
+            
+      await chatgptPage.waitForFunction((selector1, selector2) => {
+        const button1 = document.querySelector(selector1);
+        const button2 = document.querySelector(selector2);
+        return (button1 && !button1.disabled) || (button2 && !button2.disabled);
+      }, { timeout: 5000 }, sendButtonSelector1, sendButtonSelector2);
+            
+      await findAndClickSendButton(chatgptPage, sendButtonSelector1, sendButtonSelector2);
+            
+      await chatgptPage.waitForSelector('[data-testid^="conversation-turn-"]:last-of-type .markdown');
+      await new Promise(resolve => setTimeout(resolve, 18000));
+            
+      const reply = await chatgptPage.evaluate(() => {
+        return document.querySelector('[data-testid^="conversation-turn-"]:last-of-type .markdown').innerText;
+      });
+            
+      console.log('ChatGPT的响应内容:');
+      console.log(reply);
+            
+      // 将内容按照中文句号分段
+      const segments = reply.split(/[。！？]/);
+            
+      // 逐段发送消息
+      await page.keyboard.press('7');
+      await page.keyboard.press('9');
+      for (const segment of segments) {
+        if (segment.trim() !== '') {
+          await sendMessage(page, segment.trim() + '。');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+      await page.keyboard.press('8');
+      await page.keyboard.press('9');
+            
+      await chatgptBrowser.disconnect();
+            
+      break; // 成功获取回复,跳出重试循环
+    } catch (error) {
+      console.error(`获取 ChatGPT 回复失败 (尝试 ${retries + 1}/${maxRetries}):`, error);
+      retries++;
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+}
+
 const gameMapping = {
   '1': '奇幻',
   '2': '科幻',
   '3': '恐怖',
-  '4': '历史',
+  '4': '盗梦空间',
   '5': '007',
-  '6': '摇滚乐队',
+  '6': '生化危机',
   '7': '朋克',
   '8': '后启示录',
-  '9': '小马宝莉',
+  '9': '侏罗纪公园',
 };
 
 async function processMessages(page) {

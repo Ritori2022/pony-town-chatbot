@@ -55,6 +55,81 @@ async function clickButton(page) {
     throw new Error('获取聊天记录失败,已达到最大重试次数');
   }
 
+async function sendMessageToChatGPT(page, messageToSend) {
+  const maxRetries = 3;
+  let retries = 0;
+  while (retries < maxRetries) {
+    try {
+      // 连接到 ChatGPT 页面
+      const chatgptBrowserWSEndpoint = await getWSEndpoint(9223); // 替换为 ChatGPT 的端口号
+      const chatgptBrowser = await puppeteer.connect({
+        browserWSEndpoint: chatgptBrowserWSEndpoint.replace('http://', 'ws://'),
+        defaultViewport: null,
+      });
+      const chatgptPages = await chatgptBrowser.pages();
+      const chatgptPage = chatgptPages[0];
+            
+      async function findAndClickSendButton(page) {
+        const sendButtonSelector = 'button.mb-1.mr-1.flex.h-8.w-8.items-center.justify-center.rounded-full.bg-black.text-white.transition-colors.hover\\:opacity-70.focus-visible\\:outline-none.focus-visible\\:outline-black.disabled\\:bg-\\[\\\#D7D7D7\\].disabled\\:text-\\[\\\#f4f4f4\\].disabled\\:hover\\:opacity-100.dark\\:bg-white.dark\\:text-black.dark\\:focus-visible\\:outline-white.disabled\\:dark\\:bg-token-text-quaternary.dark\\:disabled\\:text-token-main-surface-secondary path[d="M15.192 8.906a1.143 1.143 0 0 1 1.616 0l5.143 5.143a1.143 1.143 0 0 1-1.616 1.616l-3.192-3.192v9.813a1.143 1.143 0 0 1-2.286 0v-9.813l-3.192 3.192a1.143 1.143 0 1 1-1.616-1.616z"]';
+            
+        await page.waitForSelector(sendButtonSelector, { timeout: 5000 });
+            
+        await page.click(sendButtonSelector);
+      }
+            
+      // 在 ChatGPT 页面中输入消息并获取回复
+      await chatgptPage.type('#prompt-textarea', messageToSend);
+            
+      // 等待1秒钟,让页面有时间更新
+      await new Promise(resolve => setTimeout(resolve, 1000));
+            
+      const sendButtonSelector1 = 'button.flex.items-center.justify-center.rounded-full';
+      const sendButtonSelector2 = 'button.mb-1.mr-1.flex.h-8.w-8.items-center.justify-center.rounded-full';
+            
+      await chatgptPage.waitForFunction((selector1, selector2) => {
+        const button1 = document.querySelector(selector1);
+        const button2 = document.querySelector(selector2);
+        return (button1 && !button1.disabled) || (button2 && !button2.disabled);
+      }, { timeout: 5000 }, sendButtonSelector1, sendButtonSelector2);
+            
+      await findAndClickSendButton(chatgptPage, sendButtonSelector1, sendButtonSelector2);
+            
+      await chatgptPage.waitForSelector('[data-testid^="conversation-turn-"]:last-of-type .markdown');
+      await new Promise(resolve => setTimeout(resolve, 18000));
+            
+      const reply = await chatgptPage.evaluate(() => {
+        return document.querySelector('[data-testid^="conversation-turn-"]:last-of-type .markdown').innerText;
+      });
+            
+      console.log('ChatGPT的响应内容:');
+      console.log(reply);
+            
+      // 将内容按照中文句号分段
+      const segments = reply.split(/[。！？]/);
+            
+      // 逐段发送消息
+      await page.keyboard.press('7');
+      await page.keyboard.press('9');
+      for (const segment of segments) {
+        if (segment.trim() !== '') {
+          await sendMessage(page, segment.trim() + '。');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+      await page.keyboard.press('8');
+      await page.keyboard.press('9');
+            
+      await chatgptBrowser.disconnect();
+            
+      break; // 成功获取回复,跳出重试循环
+    } catch (error) {
+      console.error(`获取 ChatGPT 回复失败 (尝试 ${retries + 1}/${maxRetries}):`, error);
+      retries++;
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+}
+
   async function sendMessage(page, message) {
     const maxRetries = 3;
     let retries = 0;
@@ -107,59 +182,69 @@ async function clickButton(page) {
         });
         const chatgptPages = await chatgptBrowser.pages();
         const chatgptPage = chatgptPages[0];
-              
+                
         async function findAndClickSendButton(page) {
           const sendButtonSelector = 'button.mb-1.mr-1.flex.h-8.w-8.items-center.justify-center.rounded-full.bg-black.text-white.transition-colors.hover\\:opacity-70.focus-visible\\:outline-none.focus-visible\\:outline-black.disabled\\:bg-\\[\\\#D7D7D7\\].disabled\\:text-\\[\\\#f4f4f4\\].disabled\\:hover\\:opacity-100.dark\\:bg-white.dark\\:text-black.dark\\:focus-visible\\:outline-white.disabled\\:dark\\:bg-token-text-quaternary.dark\\:disabled\\:text-token-main-surface-secondary path[d="M15.192 8.906a1.143 1.143 0 0 1 1.616 0l5.143 5.143a1.143 1.143 0 0 1-1.616 1.616l-3.192-3.192v9.813a1.143 1.143 0 0 1-2.286 0v-9.813l-3.192 3.192a1.143 1.143 0 1 1-1.616-1.616z"]';
-              
+                
           await page.waitForSelector(sendButtonSelector, { timeout: 5000 });
-              
+                
           await page.click(sendButtonSelector);
         }
-              
+                
         // 在 ChatGPT 页面中输入消息并获取回复
         await chatgptPage.type('#prompt-textarea', messageToSend);
-              
+                
         // 等待1秒钟,让页面有时间更新
         await new Promise(resolve => setTimeout(resolve, 1000));
-              
+                
         const sendButtonSelector1 = 'button.flex.items-center.justify-center.rounded-full';
         const sendButtonSelector2 = 'button.mb-1.mr-1.flex.h-8.w-8.items-center.justify-center.rounded-full';
-              
+                
         await chatgptPage.waitForFunction((selector1, selector2) => {
           const button1 = document.querySelector(selector1);
           const button2 = document.querySelector(selector2);
           return (button1 && !button1.disabled) || (button2 && !button2.disabled);
         }, { timeout: 5000 }, sendButtonSelector1, sendButtonSelector2);
-              
+                
         await findAndClickSendButton(chatgptPage, sendButtonSelector1, sendButtonSelector2);
-              
+                
         await chatgptPage.waitForSelector('[data-testid^="conversation-turn-"]:last-of-type .markdown');
         await new Promise(resolve => setTimeout(resolve, 18000));
-              
+                
         const reply = await chatgptPage.evaluate(() => {
           return document.querySelector('[data-testid^="conversation-turn-"]:last-of-type .markdown').innerText;
         });
-              
+                
         console.log('ChatGPT的响应内容:');
         console.log(reply);
-              
-        // 将内容按照中文句号分段
-        const segments = reply.split(/[。！？]/);
-              
-        // 逐段发送消息
+                
+// 按照句号和冒号分行,遇到字母新起一行
+const lines = reply.split(/[。：]/).map(line => line.trim()).filter(line => line !== '');
+const formattedLines = [];
+for (const line of lines) {
+  if (/^[a-zA-Z]/.test(line)) {
+    formattedLines.push(line);
+  } else {
+    if (formattedLines.length === 0) {
+      formattedLines.push(line);
+    } else {
+      formattedLines[formattedLines.length - 1] += line;
+    }
+  }
+}
+                
+        // 逐行发送消息
         await page.keyboard.press('7');
         await page.keyboard.press('9');
-        for (const segment of segments) {
-          if (segment.trim() !== '') {
-            await sendMessage(page, segment.trim() + '。');
-            await new Promise(resolve => setTimeout(resolve, 3000));
-          }
+        for (const line of formattedLines) {
+          await sendMessage(page, line);
+          await new Promise(resolve => setTimeout(resolve, 3000));
         }
         await page.keyboard.press('8');
         await page.keyboard.press('9');
-              
+                
         await chatgptBrowser.disconnect();
-              
+                
         break; // 成功获取回复,跳出重试循环
       } catch (error) {
         console.error(`获取 ChatGPT 回复失败 (尝试 ${retries + 1}/${maxRetries}):`, error);
