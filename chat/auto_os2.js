@@ -85,7 +85,7 @@ async function loadOCMessages(ocFile) {
   
   async function processMessages(page, lastSentMessage, lastSentTimestamp) {
     try {
-      const ocMessages = await loadOCMessages('oc.txt');
+      const ocMessages = await loadOCMessages('oc_liushuang.txt');
       const progressFile = 'progress.txt';
       let index = await loadProgress(progressFile);
       let position = 0;
@@ -127,7 +127,7 @@ async function loadOCMessages(ocFile) {
         }
   
         // 检查与上次发送消息的时间间隔是否超过2分钟
-        const isLastSentMessageOld = currentTime - lastSentTimestamp > 2 * 60 * 1000;
+        const isLastSentMessageOld = currentTime - lastSentTimestamp > 1 * 60 * 1000;
   
         if (isLastMessageSent || (sameMessageCount >= 2 && isLastSentMessageOld)) {
           const line = ocMessages[index];

@@ -54,7 +54,7 @@ async function sendMessageToChatGPT(page, messageToSend) {
       await findAndClickSendButton(chatgptPage, sendButtonSelector1, sendButtonSelector2);
             
       await chatgptPage.waitForSelector('[data-testid^="conversation-turn-"]:last-of-type .markdown');
-      await new Promise(resolve => setTimeout(resolve, 6000));
+      await new Promise(resolve => setTimeout(resolve, 10000));
             
       const reply = await chatgptPage.evaluate(() => {
         return document.querySelector('[data-testid^="conversation-turn-"]:last-of-type .markdown').innerText;
@@ -94,7 +94,7 @@ async function processMessages(page) {
     const chatLogs = await getChatLogs(page);
     const lastLog = chatLogs[chatLogs.length - 1];
 
-    if (lastLog.name !== '流霜黯淡(npc小马)') {
+    if (lastLog.name !== '流霜黯淡(npc)(任意聊天激活)') {
       await page.keyboard.press('9');
       await page.keyboard.press('8');
       await page.keyboard.press('7');
