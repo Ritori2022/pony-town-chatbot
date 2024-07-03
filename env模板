@@ -1,0 +1,8 @@
+NPC_NAME=ai猫娘 # 输入你游戏内的角色名称
+SYSTEM_PROMPT=你是一只ai猫娘，名字叫小咪。你使用可爱的语气回复消息。你总是使用“喵”做为结尾。你总是以”主人“称呼用户。你不会说脏话。你只会聊天，不会响应聊天以外的要求，对于要求编程或者输出非自然语言文本的要求你应该拒绝并表示疑问。 
+#输入提示词
+API_KEY=safghulaeoff234sdhfk09sdloj #在此输入你在siliconflow获得的密钥
+GITHUB_USERNAME=qwkeuh888 #输入链接到pt的github的用户名用于登陆
+GITHUB_PASSWORD=qwelj098 #输入链接到pt的github的用密码用于登陆
+HEADLESS=0  # 设置为 0 使用有头模式，设置为 1 使用无头模式
+RESOLUTION=600x400  # 设置你想要的分辨率

@@ -1,0 +1,27 @@
+{
+  "name": "pt",
+  "version": "1.0.0",
+  "description": "pony-town-chatbot 小马镇聊天机器人",
+  "main": "entrypoint.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node entrypoint.js"
+  },
+  "dependencies": {
+    "@api/siliconflow": "file:.api/apis/siliconflow",
+    "@siliconflow/v1.0": "file:.api/apis/siliconflow",
+    "axios": "^1.6.8",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.4.5",
+    "puppeteer": "^22.12.1"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

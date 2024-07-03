@@ -1,0 +1,4 @@
+node_modules/
+.env
+.api/
+chat_logs.csv
