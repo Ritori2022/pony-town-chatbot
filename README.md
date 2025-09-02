@@ -73,7 +73,7 @@ npm install
 - `browser2.js` - 启动 ChatGPT 浏览器实例  
 - `rejoin.js` - 自动重连服务器
 - `screenshot.js` - 自动截图功能
-- `afk.js` - 防挂机脚本
+- `afk.js` - 防掉线脚本
 
 ### 文本处理
 - `auto_reading.js` - 自动朗读系统
