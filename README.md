@@ -1,86 +1,130 @@
-pony-town-chatbot 小马镇聊天机器人
+# 🐎 Pony Town 聊天机器人
 
-用于在小马镇自动获取聊天记录并且回复的机器人
+[![Node.js](https://img.shields.io/badge/Node.js-14+-green.svg)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
 
-可以朗读书籍，对话，玩角色扮演游戏
+一个功能强大的小马镇 (Pony Town) 自动聊天机器人，支持多种AI模型驱动的智能对话、角色扮演、朗读等功能。
 
-查看neko分支来使用最新最小的猫娘版本2024/07/03
+## ✨ 主要功能
 
-开发者的话：感谢一周多来大家的支持;原本只是突发奇想做个交互机器人给自己玩，没想到能吸引这么多玩家。
-实在感到惊喜;不过由于时间原因，之后可能就没法做更多的更新了;会尽量保持机器人在线供游玩。
-再次感谢;祝游戏愉快。2024/05/23
+- 🤖 **智能对话**: 支持 ChatGPT 和 Llama3-7B 多种AI模型
+- 🎭 **角色扮演**: 内置多个角色模板，支持自定义角色
+- 📚 **文本朗读**: 自动朗读指定文本内容
+- 🔄 **自动重连**: 智能检测断线并自动重连
+- 📸 **自动截图**: 定时保存游戏截图
+- 💬 **聊天记录**: 自动获取并保存聊天记录
 
-如果没有node.js请先下载
-使用npm install安装依赖
+## 🚀 快速开始
 
-使用说明：
-需要先使用browser.js打开的测试浏览器打开pony town并且打开聊天记录。
-使用browser2.js打开chatgpt.com。
-之后按需要启用各种脚本连接到浏览器进行自动化操作。
+### 环境要求
+- Node.js 14+
+- Python 3.7+ (如需使用 Llama3 API)
+- Chrome/Chromium 浏览器
 
-文件作用如下：
-afk.js://用来挂机的脚本，每一分钟按一下数字键0
+### 安装依赖
+```bash
+npm install
+```
 
-auto_os.js//十分钟没人搭话就自言自语，读取prompt_introduce.txt的提示词，之后使用llama3 -7b api即时生成独白
+### 基础使用
 
-auto_os2.js//三分钟没人搭话就自言自语,从oc.txt中每分钟读一句
+1. **启动浏览器环境**:
+   ```bash
+   node browser.js        # 启动 Pony Town 浏览器
+   node browser2.js       # 启动 ChatGPT 浏览器 (可选)
+   ```
 
-auto_pt_gpt.js//使用chatgpt网页版来驱动聊天机器人的脚本
+2. **运行聊天机器人**:
+   ```bash
+   node auto_pt_gpt.js    # 使用 ChatGPT 驱动
+   # 或
+   node auto_pt.js        # 使用 Llama3 API 驱动
+   ```
 
-auto_pt.js//使用llama3-7b api 来驱动pt聊天机器人的自动聊天脚本
+3. **其他功能脚本**:
+   ```bash
+   node welcome.js        # 欢迎新玩家
+   node auto_reading.js   # 自动朗读文本
+   node screenshot.js     # 定时截图
+   ```
 
-auto_pt2.js//使用llama3-7b api 来驱动pt聊天机器人的自动聊天脚本，更换了角色
+## 📁 项目结构
 
-auto_read2.js//用于自动阅读独白的脚本，三分钟没人搭话就自言自语,从oc.txt中每分钟读一句
+```
+├── chat/              # 聊天相关脚本
+├── game/              # 游戏功能脚本  
+├── tools/             # 实用工具
+├── test/              # 测试文件
+├── reading/           # 朗读相关文件
+├── additional/        # 备用脚本
+├── common.js          # 公共函数库
+└── index.js           # HTTP服务器入口
+```
 
-auto_reading.js//用于朗读的脚本，从dianbo_changyuantu.txt'读取内容，每10秒读一句，进度保存在progress.txt里
+## 🛠️ 核心脚本说明
 
-browser.js//启动浏览器用于连接pony.town
+### 聊天机器人
+- `auto_pt_gpt.js` - ChatGPT 网页版驱动的聊天机器人
+- `auto_pt.js` / `auto_pt2.js` - Llama3 API 驱动的聊天机器人（不同角色）
+- `auto_os.js` - 智能独白系统（10分钟无人回应时触发）
 
-browser2.js//启动浏览器用于连接chatgpt.com
+### 实用工具
+- `browser.js` - 启动 Pony Town 浏览器实例
+- `browser2.js` - 启动 ChatGPT 浏览器实例  
+- `rejoin.js` - 自动重连服务器
+- `screenshot.js` - 自动截图功能
+- `afk.js` - 防挂机脚本
 
-get_talk_60s.js//每分钟获取聊天记录的脚本,加入到chat_logs.csv中
+### 文本处理
+- `auto_reading.js` - 自动朗读系统
+- `get_talk.js` - 获取聊天记录
+- `welcome.js` - 欢迎新玩家
 
-get_talk.js//获取聊天框中所有记录的脚本，打印在控制台上，用于测试获取聊天记录功能
+## ⚙️ 配置说明
 
-gpt_test.js//发送一次消息给chatgpt.com并获取回答的脚本，用于测试chatgpt.com的连接
+### AI 模型配置
+- **ChatGPT**: 需要在浏览器中登录 ChatGPT 账号
+- **Llama3**: 需要配置相应的 API 端点和密钥
 
-gpt.py#用于在run_gpt.js和llama3-7b api之间传递消息的python脚本
+### 角色设定
+通过修改提示词文件自定义机器人角色：
+- `prompt_introduce.txt` - 角色介绍
+- `prompt_orign.txt` - 原始提示词
 
-min_test.js//自动化运行的最小可行测试
+## 🎮 使用建议
 
-pt_game.js//用于单人桌面角色扮演的脚本，接受玩家聊天输入，数字选择主题，字母选择选项
+1. **首次使用**: 建议先运行 `min_test.js` 进行基本功能测试
+2. **稳定运行**: 配合 `rejoin.js` 确保连接稳定性
+3. **多功能组合**: 可同时运行多个脚本实现复合功能
 
-rejoin.js//用于自动重连的脚本，每20秒查找一次safe chinese按钮，找到就点
+## 🔧 故障排除
 
-run_gpt.js//用来通过python获得llama3-7b回复的脚本
+常见问题及解决方案：
+- 浏览器连接失败：检查端口占用情况
+- ChatGPT 无响应：使用 `recreate.js` 重置连接
+- 聊天记录获取失败：确保聊天窗口已打开
 
-screenshot.js//每5分钟自动截图一次的脚本
+## 🗺️ 更新计划
 
-sned_message.js//发送一次聊天内容到pt的脚本
+- [x] 函数模块化
+- [ ] 计算机视觉识别新玩家
+- [ ] 增强提示词安全性
+- [ ] 扩展书籍库
+- [ ] 角色切换功能
+- [ ] 批处理自动化
 
-test.py#单独运行用于测试llama3-7b的脚本，发送hello给llama3，并打印回答。
+## 📞 联系方式
 
-test1.js//连接到browser.js的测试，使用browser.js开启的测试浏览器继续进行自动化操作
+如有问题或建议，欢迎通过以下方式联系：
+- QQ: 1207991271 (请备注：小马镇机器人)
 
-welcome.js//用于发送欢迎语的脚本，从oc.txt中读取，有人发言就发送欢迎语，每分钟最多发一次，通过按键5和6控制小马的睡眠和唤醒
+## 📄 许可证
 
-2024/05/21
-recreate.js//用于将chatgpt网页版从异常错误中恢复
+本项目采用 ISC 许可证 - 详见 [LICENSE](LICENSE) 文件
 
-2024/05/22
-将pt_game的函数模块化入common.js中，供auto_pt_gpt复用
-更新了一下文件组织结构：additional是备用文件，chat是聊天脚本文件，game是游戏脚本文件，test是测试用工具，tools是常用工具，txt存放文本
+---
 
-todolist:
-将函数模块化，使得不同脚本可以共用最新版的函数
-使用计算机视觉或网络方法来确认新上岛的小马，并打招呼
-调增流霜黯淡的提示词权重，降低越狱风险
-增加书目，制作书单
-制作切换角色的功能
-制作批处理程序提高自动化程度
-
-如果实在很想做机器人但是不知道怎么办的可以加我qq:1207991271,我可以简单说说，加qq请备注小马镇机器人
+> 💡 **开发者寄语**: 感谢社区的支持与反馈！这个项目从个人兴趣出发，希望为小马镇玩家带来更有趣的游戏体验。虽然更新可能不会很频繁，但会尽力保持机器人的稳定运行。祝大家游戏愉快！🎉
 
 
 
