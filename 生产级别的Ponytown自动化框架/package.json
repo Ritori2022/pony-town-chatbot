@@ -1,0 +1,29 @@
+{
+  "name": "ponytown-chromium",
+  "version": "1.0.0",
+  "description": "Ponytown自动化交互框架 - Luna喵～",
+  "main": "play_ponytown.js",
+  "scripts": {
+    "start": "node start_browser.js",
+    "play": "node play_ponytown.js",
+    "bot": "node example_bot.js"
+  },
+  "keywords": [
+    "ponytown",
+    "puppeteer",
+    "automation",
+    "chatbot"
+  ],
+  "author": "Luna & 喵喵",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  },
+  "devDependencies": {
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
