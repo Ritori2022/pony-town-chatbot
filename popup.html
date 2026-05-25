@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 220px;
+      background: #0f0e17;
+      color: #e0def4;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
+      padding: 14px;
+    }
+    .title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 700; color: #c4a1ff;
+      margin-bottom: 12px;
+    }
+    .btn {
+      width: 100%; padding: 9px;
+      background: #7c5cbf; color: #fff;
+      border: none; border-radius: 7px;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn:hover { background: #9171d6; }
+    .hint { margin-top: 8px; font-size: 10px; color: #44415a; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="title">🐴 PT GLM 聊天机器人</div>
+  <button class="btn" id="openBtn">打开控制面板</button>
+  <div class="hint">面板为独立窗口，不影响游戏操作</div>
+  <script src="popup.js"></script>
+</body>
+</html>

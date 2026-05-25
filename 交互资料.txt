@@ -1,0 +1,206 @@
+我已经在 pony.town 上完整地实测了一遍，下面给你一份可以直接拿来写插件的开发指南。
+
+## 一、关键 DOM 结构（pony.town 是 Angular 应用，类名稳定）
+
+| 功能 | 选择器 |
+|---|---|
+| 聊天输入框（textarea） | `textarea[aria-label="Chat message"]`，类名 `.chat-textarea.chat-commons` |
+| 输入框外层包装 | `.chat-textarea-wrap` |
+| 整个聊天框组件 | `chat-box`（自定义元素） |
+| 输入区右侧控制条 | `.chat-box-controls`（含 emoji 按钮 + `>>` 发送按钮） |
+| Emoji 按钮 | `.chat-box-controls button.emote`（title="Emojis…"） |
+| 发送按钮（`>>`） | `.chat-box-controls ui-button > button`（即第二个非 `.emote` 的按钮） |
+| 左下气泡（打开输入） | `.chat-open-button button` |
+| 左下双气泡（聊天记录开关） | `.chat-log-toggle button` |
+| 聊天记录容器 | `chat-log > .chat-log`（内部含历史消息） |
+| 单条消息 | `.chat-line`，子节点：`.chat-line-lead` / `.chat-line-timestamp` / `.chat-line-label` / `.chat-line-name` / 消息正文 |
+| 频道修饰类 | `.chat-line-party` / `.chat-line-local` / `.chat-line-personal` / `.chat-line-selected` 等 |
+
+## 二、状态判断
+
+输入框是否处于"打开"状态：`<chat-log>` 上会同时挂一个 `is-chatbox-open` 类，并且 `.chat-open-button` 会被隐藏。最稳的判定是看 textarea 本身是否可见：
+
+```js
+const ta = document.querySelector('textarea[aria-label="Chat message"]');
+const isInputOpen = !!ta && ta.offsetParent !== null && ta.getBoundingClientRect().width > 0;
+```
+
+是否处于"光标在输入框/输入态"：
+
+```js
+const hasCursor = document.activeElement === ta;
+```
+
+聊天记录面板是否打开（点双气泡后会切换 `display:none`）：
+
+```js
+const log = document.querySelector('chat-log > .chat-log');
+const isLogOpen = log && getComputedStyle(log).display !== 'none';
+// 也可用 log.offsetParent !== null
+```
+
+## 三、动作执行
+
+打开输入框（两种方式都可用，按需选其一）：
+
+```js
+// 方式 A：点气泡
+document.querySelector('.chat-open-button button').click();
+// 方式 B：模拟回车（页面在非输入态时监听 Enter 打开聊天）
+document.body.dispatchEvent(new KeyboardEvent('keydown',
+  {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true}));
+```
+两种我都试过，第二种 `keydown` 事件能成功打开并自动 focus 到 textarea。
+
+写入文本（重点：Angular 用的是 React 风格的 value setter 监听，必须用原型 setter + 派发 `input` 事件，否则框架不会感知）：
+
+```js
+function setChatText(text) {
+  const ta = document.querySelector('textarea[aria-label="Chat message"]');
+  ta.focus();
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+  setter.call(ta, text);
+  ta.dispatchEvent(new Event('input', {bubbles:true}));
+}
+```
+（直接 `ta.value = ...` 在我测试时也显示出来了，但派发 `input` 更保险，能让组件内部状态同步。）
+
+发送消息：
+
+```js
+// 方式 A：点 >> 按钮
+document.querySelector('.chat-box-controls ui-button button').click();
+// 方式 B：在 textarea 上派发回车
+ta.dispatchEvent(new KeyboardEvent('keydown',
+  {key:'Enter', code:'Enter', keyCode:13, which:13, bubbles:true}));
+```
+两种都会触发发送并自动关闭输入框（这是 pony.town 的默认行为，正符合你描述）。
+
+关闭输入框（不发送）：textarea 上派发 `Escape`，或直接 `ta.blur()`。实测 `Escape` keydown 能让框架关闭输入。
+
+切换聊天记录显示：
+
+```js
+document.querySelector('.chat-log-toggle button').click();
+```
+点一次切换一次，类名不变，只是子元素 `.chat-log` 的 `display` 在 `flex` 与 `none` 之间切换，可用此判断是否开启。
+
+## 四、读取消息
+
+聊天记录最多保留 200 条左右（我看到的 lineCount=200，会滚动覆盖）。逐条解析：
+
+```js
+function readMessages() {
+  const log = document.querySelector('chat-log > .chat-log');
+  if (!log) return [];
+  return Array.from(log.querySelectorAll('.chat-line')).map(line => {
+    const time = line.querySelector('.chat-line-timestamp')?.textContent?.trim() || '';
+    const label = line.querySelector('.chat-line-label')?.textContent?.trim() || '';
+    const name  = line.querySelector('.chat-line-name')?.textContent?.trim() || '';
+    // 正文 = 整行文本减去 lead / 时间戳 / label / name
+    const cloned = line.cloneNode(true);
+    cloned.querySelectorAll('.chat-line-lead,.chat-line-timestamp,.chat-line-label,.chat-line-name').forEach(n => n.remove());
+    const text = cloned.textContent.trim();
+    const channel = Array.from(line.classList).find(c => /^chat-line-(party|local|personal|whisper|announcement|server|selected)/.test(c)) || '';
+    return { time, label, name, text, channel, raw: line.textContent.trim() };
+  });
+}
+```
+
+## 五、监听新消息（推荐用 MutationObserver，比轮询省 CPU）
+
+```js
+const log = document.querySelector('chat-log > .chat-log');
+const observer = new MutationObserver(muts => {
+  for (const m of muts) {
+    m.addedNodes.forEach(n => {
+      if (n.nodeType === 1 && n.classList?.contains('chat-line')) {
+        // 单独解析这条新消息推给 LLM
+      }
+    });
+  }
+});
+observer.observe(log, {childList: true, subtree: false});
+```
+注意 `.chat-line` 是 `.chat-log` 的直接子节点（中间还会穿插 `.chat-line-lead` 占位元素），所以监听 `childList` 即可，不必 `subtree`。如果聊天记录被切到 `display:none`，DOM 仍然在更新，监听不受影响——这意味着你的 LLM 即便用户关闭了历史面板也能继续"听见"消息。
+
+## 六、坑与注意点
+
+1. **不要用 React/Angular 不识别的赋值方式**：直接 `ta.value = '...'` 显示得出，但某些版本 Angular 组件不一定同步内部 model，造成发送的是空串。务必走"原型 setter + dispatch input"。
+2. **频道选择**：输入框前面的 `[party]:` `[local]:` 这类是当前频道，由顶部的频道切换按钮（`.chat-log` 上方有 Local / Personal / Party 链接）决定。要切换频道就模拟点击对应链接。
+3. **Enter 在不同上下文行为不同**：focus 在 textarea 时 Enter 是发送；不在 textarea 时（focus 在 `body` 或 canvas）Enter 是打开输入。所以判定后再决定派发到谁。
+4. **Shift+Enter**：在 textarea 内是换行，不发送，写多行消息时可以用。
+5. **发送后输入框自动关闭并失焦**，要连续发要重新走"打开 → 输入 → 发送"流程，建议封装成一个 `sendMessage(text)` 函数串起来。
+6. **消息长度上限 400**：`textarea` 上有 `maxlength="400"`，让 LLM 输出时注意截断。
+7. **避免与游戏快捷键冲突**：游戏在 canvas 上监听 WASD、空格等键，所以你的"派发 Enter"应当 dispatch 在具体元素（`document.body` 或 `ta`）上，而不是直接 `window`，免得触发其他动作。
+8. **DOM 阻塞**：pony.town 用 cookie 鉴权，如果你用 `MAIN world` content script 注入要小心 CORS / SameSite。content script 在页面 DOM 上操作是没问题的（实测全部通过）。
+9. **类名变化**：项目是 Angular，类名带 `_ngcontent-ng-*` 这类属性会变，但稳定类（`.chat-textarea`、`.chat-log`、`.chat-open-button`、`.chat-log-toggle`、`.chat-box-controls`、`.chat-line*`）实测不会变，选择器以这些为准最稳。
+
+## 七、一个最小可用的封装样板
+
+```js
+const PT = {
+  get ta() { return document.querySelector('textarea[aria-label="Chat message"]'); },
+  get log() { return document.querySelector('chat-log > .chat-log'); },
+  isInputOpen() { const t = this.ta; return !!t && t.offsetParent !== null; },
+  isFocused()   { return document.activeElement === this.ta; },
+  isLogOpen()   { return this.log && getComputedStyle(this.log).display !== 'none'; },
+
+  openInput() {
+    if (this.isInputOpen()) return;
+    document.querySelector('.chat-open-button button')?.click();
+  },
+  closeInput() {
+    this.ta?.dispatchEvent(new KeyboardEvent('keydown',
+      {key:'Escape',code:'Escape',keyCode:27,bubbles:true}));
+  },
+  toggleLog() { document.querySelector('.chat-log-toggle button')?.click(); },
+  ensureLogOpen() { if (!this.isLogOpen()) this.toggleLog(); },
+
+  setText(text) {
+    const ta = this.ta; if (!ta) return false;
+    ta.focus();
+    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set;
+    setter.call(ta, text);
+    ta.dispatchEvent(new Event('input',{bubbles:true}));
+    return true;
+  },
+  send() {
+    document.querySelector('.chat-box-controls ui-button button')?.click();
+  },
+
+  async sendMessage(text, {channel} = {}) {
+    if (!this.isInputOpen()) this.openInput();
+    // 等一帧让框架挂上 textarea
+    await new Promise(r => requestAnimationFrame(r));
+    // 可选：切频道（如果你想加 channel 支持，先在这里点对应链接）
+    this.setText(text.slice(0, 400));
+    this.send();
+  },
+
+  readMessages() {
+    const log = this.log; if (!log) return [];
+    return [...log.querySelectorAll('.chat-line')].map(line => {
+      const time = line.querySelector('.chat-line-timestamp')?.textContent.trim() || '';
+      const name = line.querySelector('.chat-line-name')?.textContent.trim() || '';
+      const clone = line.cloneNode(true);
+      clone.querySelectorAll('.chat-line-lead,.chat-line-timestamp,.chat-line-label,.chat-line-name').forEach(n=>n.remove());
+      return { time, name, text: clone.textContent.trim(),
+               channel: [...line.classList].find(c=>/^chat-line-(party|local|personal|whisper|announcement|server|selected)/.test(c)) || '' };
+    });
+  },
+
+  onNewMessage(cb) {
+    const log = this.log; if (!log) return () => {};
+    const obs = new MutationObserver(muts => {
+      for (const m of muts) m.addedNodes.forEach(n => {
+        if (n.nodeType === 1 && n.classList?.contains('chat-line')) cb(n);
+      });
+    });
+    obs.observe(log, {childList:true});
+    return () => obs.disconnect();
+  }
+};
+```
+
+这套接口我在你当前打开的页面上每一步都跑通了：打开输入 ✅、判断 focus ✅、写入文字（显示出 "hello test"）✅、识别 `>>` 按钮位置 ✅、Esc/blur 关闭 ✅、双气泡按钮切换 `chat-log` 显隐 ✅、解析最后几条消息含时间戳/姓名/频道 ✅。为避免在真实公屏上发垃圾信息，我没有真正点击发送，但 send 按钮的选择器已经验证过。你可以基于上面这套封装直接接入你的 LLM 管道。

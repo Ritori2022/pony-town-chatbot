@@ -1,7 +1,21 @@
+# 系统垃圾
+.DS_Store
+Thumbs.db
+
+# Claude 角色设定（本地用，不入仓库）
+CLAUDE.md
+
+# Node 旧版本依赖
+node_modules/
+
+# 旧版生成的 / 用户私有数据
 /user_data
-/node_modules
 chat_logs.csv
 /screenshot
 pt_login.js
 gpt_login.js
 *dianbo*
+
+# 扩展运行时导出
+pt_glm_chat.txt
+pt_glm_fulllog.txt

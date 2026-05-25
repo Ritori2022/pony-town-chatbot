@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "PT GLM Chat Bot",
+  "version": "2.0",
+  "description": "用 GLM 文本模型监听 pony.town 聊天并自动回复",
+  "permissions": ["tabs", "activeTab", "storage", "windows", "downloads", "unlimitedStorage"],
+  "host_permissions": [
+    "https://pony.town/*",
+    "https://open.bigmodel.cn/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PT GLM 聊天机器人",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://pony.town/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

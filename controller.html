@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>PT GLM 聊天机器人</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 100%;
+      background: #0f0e17;
+      color: #e0def4;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
+      padding: 14px;
+      overflow-x: hidden;
+    }
+
+    /* ── 标题栏 ── */
+    .header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 12px;
+    }
+    .header h1 { font-size: 15px; font-weight: 700; color: #c4a1ff; }
+    .header .badge {
+      margin-left: auto; font-size: 10px; padding: 2px 7px;
+      border-radius: 10px; background: #1e1b2e; color: #6e6a86;
+    }
+
+    /* ── 表单 ── */
+    .field { margin-bottom: 10px; }
+    label {
+      display: block; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: #6e6a86; margin-bottom: 4px;
+    }
+    .help {
+      font-size: 10px; color: #44415a; margin-top: 3px; line-height: 1.45;
+    }
+    input[type="text"], input[type="password"], input[type="number"], textarea, select {
+      width: 100%; background: #1a1826; border: 1px solid #2a2740;
+      border-radius: 6px; color: #e0def4;
+      padding: 7px 10px; font-size: 13px; font-family: inherit;
+      outline: none; transition: border-color 0.15s;
+    }
+    input:focus, textarea:focus, select:focus { border-color: #c4a1ff; }
+    select { appearance: none; cursor: pointer; padding-right: 24px;
+      background-image: linear-gradient(45deg, transparent 50%, #6e6a86 50%),
+                        linear-gradient(135deg, #6e6a86 50%, transparent 50%);
+      background-position: calc(100% - 14px) 13px, calc(100% - 9px) 13px;
+      background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+    }
+    textarea { resize: vertical; min-height: 68px; line-height: 1.5; }
+    .row { display: flex; gap: 8px; align-items: flex-end; }
+    .row .field { flex: 1; }
+
+    /* ── 多段字段（+/-）── */
+    .multi-field { display: flex; flex-direction: column; gap: 4px; }
+    .multi-row { display: flex; gap: 4px; }
+    .multi-row input { flex: 1; }
+    .mini-btn {
+      flex-shrink: 0; width: 26px; height: 30px;
+      background: #1e1b2e; border: 1px solid #2a2740;
+      border-radius: 5px; color: #c4a1ff;
+      cursor: pointer; font-size: 14px; line-height: 1;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .mini-btn:hover { border-color: #c4a1ff; background: #2a2740; }
+    .mini-btn.del { color: #eb6f92; }
+
+    /* ── checkbox row ── */
+    .check-row {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #908caa;
+      margin-bottom: 10px;
+    }
+    .check-row input[type="checkbox"] {
+      width: 14px; height: 14px; accent-color: #c4a1ff;
+      cursor: pointer;
+    }
+
+    /* ── 按钮 ── */
+    .btn {
+      width: 100%; padding: 9px; border: none; border-radius: 7px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-start { background: #7c5cbf; color: #fff; }
+    .btn-start:hover { background: #9171d6; }
+    .btn-stop  { background: #b4637a; color: #fff; }
+    .btn-stop:hover  { background: #cc7a92; }
+    .btn-row { display: flex; gap: 8px; }
+    .btn-row .btn { flex: 1; }
+    .btn-secondary {
+      background: #1e1b2e; color: #c4a1ff;
+      border: 1px solid #2a2740;
+    }
+    .btn-secondary:hover { background: #2a2740; }
+
+    hr { border: none; border-top: 1px solid #1a1826; margin: 12px 0; }
+
+    /* ── 折叠区 ── */
+    details { margin-bottom: 10px; }
+    summary {
+      cursor: pointer; user-select: none;
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: #6e6a86; padding: 5px 0;
+      list-style: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::before {
+      content: '▶'; display: inline-block;
+      margin-right: 5px; font-size: 8px;
+      transition: transform 0.15s;
+    }
+    details[open] summary::before { transform: rotate(90deg); }
+
+    /* ── 状态栏 ── */
+    .status-bar {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 10px; background: #1a1826;
+      border-radius: 6px; margin-bottom: 10px;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #44415a; flex-shrink: 0; transition: background 0.3s;
+    }
+    .dot.running { background: #31748f; animation: blink 1.4s ease-in-out infinite; }
+    .dot.error   { background: #eb6f92; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    #statusText { font-size: 12px; color: #908caa; }
+
+    /* ── 日志 ── */
+    .log {
+      background: #0a0912; border: 1px solid #1a1826;
+      border-radius: 6px; padding: 8px; height: 200px;
+      overflow-y: auto;
+      font-family: 'Cascadia Code', 'Courier New', monospace;
+      font-size: 11px; line-height: 1.65;
+    }
+    .log::-webkit-scrollbar { width: 4px; }
+    .log::-webkit-scrollbar-thumb { background: #2a2740; border-radius: 4px; }
+    .le { margin-bottom: 1px; word-break: break-all; }
+    .le.info     { color: #6e6a86; }
+    .le.incoming { color: #c4a1ff; }
+    .le.outgoing { color: #ebbcba; }
+    .le.error    { color: #eb6f92; }
+    .le.success  { color: #31748f; }
+    .le.trigger  { color: #f6c177; }
+
+    .footer {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-top: 6px;
+      font-size: 10px; color: #44415a;
+    }
+    #clearBtn, #exportBtn, #exportFullLogBtn, #resetBtn, #diagBtn {
+      background: none; border: none; color: #44415a;
+      cursor: pointer; font-size: 10px; padding: 0;
+    }
+    #clearBtn:hover, #exportBtn:hover, #exportFullLogBtn:hover { color: #908caa; }
+    #resetBtn { color: #f6c177; }
+    #resetBtn:hover { color: #ebbcba; }
+    #diagBtn  { color: #9ccfd8; }
+    #diagBtn:hover  { color: #c4a1ff; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span>🐴</span>
+    <h1>PT GLM 聊天机器人</h1>
+    <span class="badge" id="countBadge">历史 0</span>
+  </div>
+
+  <!-- ====== 基础配置 ====== -->
+  <div class="row">
+    <div class="field" style="flex: 0 0 120px;">
+      <label>接口预设</label>
+      <select id="apiPreset">
+        <option value="glm">GLM 官方</option>
+        <option value="lmstudio">LM Studio</option>
+        <option value="custom">自定义</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>API URL</label>
+      <input type="text" id="apiUrl" placeholder="https://..." />
+    </div>
+  </div>
+
+  <div class="field">
+    <label>API Key (LM Studio 等本地模型可留空)</label>
+    <input type="password" id="apiKey" placeholder="输入你的 API Key..." autocomplete="off" />
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>模型名称</label>
+      <input type="text" id="model" placeholder="glm-4-flash 或 lm studio 加载的模型名" />
+    </div>
+    <div class="field">
+      <label>我的角色名</label>
+      <input type="text" id="myName" placeholder="pony.town 中的名字" />
+    </div>
+  </div>
+
+  <!-- ====== 触发与筛选 ====== -->
+  <div class="field">
+    <label>触发字段 (任一命中即调用 GLM 回复)</label>
+    <div class="multi-field" id="triggerList"></div>
+    <div class="help">为空则所有入选历史的消息都会触发 GLM。</div>
+  </div>
+
+  <div class="field">
+    <label>筛选字段 (只有包含其一才进入历史)</label>
+    <div class="multi-field" id="filterList"></div>
+    <div class="help">为空则全部其他玩家消息都计入。GLM 自己的回复永远计入。</div>
+  </div>
+
+  <div class="field">
+    <label>删除字段 (发送给 GLM 前在每条消息上做字符串删除)</label>
+    <div class="multi-field" id="deleteList"></div>
+    <div class="help">常用于把 @我的名字 之类的前缀从历史中去掉。</div>
+  </div>
+
+  <div class="field">
+    <label>发送模板 (可选 — 发到 pony.town 前对 GLM 输出做包装)</label>
+    <input type="text" id="sendTemplate" placeholder="留空 = 直接发送。示例: /p {reply}  或  [喵]{reply}" />
+    <div class="help">用 <code style="color:#c4a1ff">{reply}</code> 代表 GLM 输出。模板不含 {reply} 时会当作前缀拼接。</div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>发送最大字符数 (含模板)</label>
+      <input type="number" id="maxSendLength" value="150" min="10" max="400" />
+    </div>
+    <div class="field" style="flex:0 0 auto; align-self:flex-end; font-size:10px; color:#44415a; padding:0 4px 7px;">
+      套模板后超长 → 按比例截断 reply
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>历史长度 (条)</label>
+      <input type="number" id="maxHistory" value="20" min="1" max="200" />
+    </div>
+    <div class="field">
+      <label>回复延迟 (秒)</label>
+      <input type="number" id="replyDelay" value="1" min="0" max="30" step="0.5" />
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>失败重试次数</label>
+      <input type="number" id="retryCount" value="3" min="0" max="10" />
+    </div>
+    <div class="field">
+      <label>重试间隔 (秒)</label>
+      <input type="number" id="retryDelaySec" value="10" min="1" max="300" />
+    </div>
+  </div>
+
+  <!-- ====== 角色提示词 ====== -->
+  <details open>
+    <summary>角色设定提示词</summary>
+    <div class="field" style="margin-top: 6px;">
+      <textarea id="characterPrompt" rows="10"
+        placeholder="把角色提示词.txt 中的内容粘贴进来..."></textarea>
+      <div class="help">作为 system 消息发送给 GLM。修改后会自动保存。</div>
+      <button class="btn btn-secondary" id="resetPromptBtn"
+        style="margin-top:6px; padding:6px;">↺ 重置为默认提示词</button>
+    </div>
+  </details>
+
+  <!-- ====== 空闲随机句子 ====== -->
+  <details>
+    <summary>空闲随机句子</summary>
+    <div style="margin-top: 6px;">
+      <div class="check-row">
+        <input type="checkbox" id="idleEnabled" />
+        <label for="idleEnabled" style="margin:0; text-transform:none; font-size:12px; color:#908caa; letter-spacing:0;">
+          启用：空闲一段时间后从池中随机抽一句发出
+        </label>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>空闲多久后发 (秒)</label>
+          <input type="number" id="idleSeconds" value="60" min="5" max="3600" />
+        </div>
+        <div class="field">
+          <label>最小发送间隔 (秒)</label>
+          <input type="number" id="idleIntervalSec" value="60" min="5" max="3600" />
+        </div>
+      </div>
+      <div class="field">
+        <label>句子池 (+/- 增删)</label>
+        <div class="multi-field" id="idleSentences"></div>
+        <div class="help">原文直接发出，不套发送模板，不受发送最大字符数限制 (仅受 pony.town 400 上限)。</div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ====== 自动导出 ====== -->
+  <details>
+    <summary>聊天记录导出</summary>
+    <div style="margin-top: 6px;">
+      <div style="font-size:10px; color:#6e6a86; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px;">
+        GLM 上下文历史 (受历史长度限制)
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="autoExport" />
+        <label for="autoExport" style="margin:0; text-transform:none; font-size:12px; color:#908caa; letter-spacing:0;">
+          自动追加写入文件 (有变化时立即写)
+        </label>
+      </div>
+      <div class="field">
+        <label>导出文件名 (下载目录相对路径)</label>
+        <input type="text" id="exportFilename" placeholder="pt_glm_chat.txt" />
+      </div>
+
+      <hr style="margin: 10px 0;" />
+
+      <div style="font-size:10px; color:#6e6a86; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px;">
+        完整去重日志 (全部消息 / 不受历史长度限制)
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="fullLogAutoExport" />
+        <label for="fullLogAutoExport" style="margin:0; text-transform:none; font-size:12px; color:#908caa; letter-spacing:0;">
+          自动追加写入完整日志文件 (推荐)
+        </label>
+      </div>
+      <div class="field">
+        <label>完整日志文件名</label>
+        <input type="text" id="fullLogFilename" placeholder="pt_glm_fulllog.txt" />
+        <div class="help">收录所有去重通过的消息：触发/过滤/自己/手动/GLM 输出，每条带 &lt;tag&gt; 标注。最多保留 5000 条。</div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ====== 控制按钮 ====== -->
+  <div class="btn-row">
+    <button class="btn btn-start" id="mainBtn">▶ 启动监听</button>
+  </div>
+
+  <hr />
+
+  <div class="status-bar">
+    <div class="dot" id="dot"></div>
+    <span id="statusText">待机中，等待启动</span>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <div class="footer">
+    <span>
+      <button id="exportBtn">导出 GLM 历史</button>
+      <span style="color:#2a2740; margin:0 4px;">|</span>
+      <button id="exportFullLogBtn">导出完整日志</button>
+    </span>
+    <span>
+      <button id="diagBtn" title="查看消息流向 + content script 状态，定位卡死原因">🔬 诊断</button>
+      <span style="color:#2a2740; margin:0 4px;">|</span>
+      <button id="resetBtn" title="清空 GLM 上下文 + 释放卡死状态，保留完整日志">🔧 紧急重置</button>
+      <span style="color:#2a2740; margin:0 4px;">|</span>
+      <button id="clearBtn">清空</button>
+    </span>
+  </div>
+
+  <script src="controller.js"></script>
+</body>
+</html>
